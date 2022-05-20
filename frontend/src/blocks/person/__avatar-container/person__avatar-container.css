@@ -1,0 +1,21 @@
+.person__avatar-container {
+  display: flex;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+  margin-right: 30px;
+}
+
+.person__avatar-container:hover .person__avatar {
+  opacity: .6;
+}
+
+.person__avatar-container:hover .person__avatar-button {
+  display: block;
+}
+
+@media screen and (max-width: 320px) {
+  .person__avatar-container {
+    margin: 0;
+  }
+}

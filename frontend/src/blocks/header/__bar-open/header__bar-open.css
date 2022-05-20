@@ -1,0 +1,22 @@
+.header__bar-open {
+  display: none;
+}
+
+.header__bar-open:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 325px) {
+  .header__bar-open {
+    display: block;
+    height: 21px;
+    margin-right: 30px;
+    width: 24px;
+    transition: opacity 0.2s linear;
+    margin-top: 3px;
+    background: transparent center url("../../../images/barOpen.png");
+    background-size: auto;
+    border: none;
+  }
+}

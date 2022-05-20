@@ -1,0 +1,28 @@
+.person__edit-button {
+  background-color: #000000;
+  min-width: 24px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  background-image: url(../../../images/edit_btn.svg);
+  align-self: flex-end;
+  margin-left: 18px;
+  border: 1px solid white;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-position: center center;
+  transition: opacity .3s linear;
+}
+
+.person__edit-button:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 320px) {
+  .person__edit-button {
+    min-width: 18px;
+    height: 18px;
+    margin-left: 10px;
+  }
+}

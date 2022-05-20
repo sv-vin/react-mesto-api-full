@@ -1,0 +1,5 @@
+.card__stroke-containet {
+  display: flex;
+  flex-direction: column;
+  margin: 22px 21px 22px 0;
+}

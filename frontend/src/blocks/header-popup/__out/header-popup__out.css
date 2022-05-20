@@ -1,0 +1,25 @@
+.header-popup__out {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  text-decoration: none;
+  transition: opacity 0.3s linear;
+  color:#A9A9A9;
+  background-color: black;
+  text-align: center;
+  border: none;
+  margin-top: 18px;
+  width: auto;
+}
+
+.header-popup__out:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.header-popup__out:active {
+  opacity: 0.3;
+  cursor: pointer;
+}

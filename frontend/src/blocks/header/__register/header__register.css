@@ -1,0 +1,32 @@
+.header__register {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  color: #ffffff;
+  text-decoration: none;
+  flex-wrap: nowrap;
+  height: 22px;
+  transition: opacity 0.3s linear;
+}
+
+.header__register:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.header__register:active {
+  opacity: 0.3;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 320px) {
+  .header__register {
+    height: 17px;
+    font-size: 14px;
+    line-height: 17px;
+    margin-top: 6px;
+    margin-right: 30px;
+  }
+}

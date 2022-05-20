@@ -1,0 +1,15 @@
+.person__avatar-button {
+  display: none;
+  padding: 0;
+  background: url(../../../images/pen.svg);
+  border: none;
+  width: 26px;
+  height: 26px;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: absolute;
+}
+
+.person__avatar-button:hover {
+  cursor: pointer;
+}

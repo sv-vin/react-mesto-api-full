@@ -1,0 +1,24 @@
+.person__profession {
+  font-family: "Inter", Arial, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  color: #FFFFFF;
+  margin: 0;
+  padding: 0;
+  margin-top: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+@media screen and (max-width: 1024px) {
+  .person__profession {
+    font-size: 14px;
+    line-height: 17px;
+    align-self: center;
+    margin-top: 14px;
+  }
+}

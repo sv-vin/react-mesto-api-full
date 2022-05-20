@@ -1,0 +1,33 @@
+.person__add-button {
+  background-color: #000000;
+  width: 150px;
+  height: 50px;
+  margin: 0;
+  padding: 0;
+  background-image: url(../../../images/add_button.svg);
+  align-self: center;
+  border: 2px solid white;
+  border-radius: 2px;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-position: center center;
+  transition: opacity .3s linear;
+}
+
+.person__add-button:hover {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 1024px) {
+  .person__add-button {
+    width: 230px;
+    margin-top: 36px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .person__add-button {
+    width: 282px;
+  }
+}

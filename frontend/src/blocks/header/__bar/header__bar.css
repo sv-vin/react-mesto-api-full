@@ -1,0 +1,10 @@
+.header__bar {
+  display: flex;
+  flex-direction: row;
+}
+
+@media screen and (max-width: 325px) {
+  .header__bar {
+    display: none;
+  }
+}

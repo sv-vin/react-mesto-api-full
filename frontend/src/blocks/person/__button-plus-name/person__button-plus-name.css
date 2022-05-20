@@ -1,0 +1,6 @@
+.person__button-plus-name {
+  display: flex;
+  flex-direction: row;
+  margin: 0;
+  padding: 0;
+}
