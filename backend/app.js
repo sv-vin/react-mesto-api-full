@@ -1,27 +1,22 @@
 require('dotenv').config();
 const express = require('express');
-
+const mongoose = require('mongoose');
 const cors = require('cors');
 const { errors } = require('celebrate');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const routerErrorWay = require('./routes/errorsway');
-const { createUser, login } = require('./controllers/users');
+const routesUser = require('./routes/users');
+const routerCard = require('./routes/cards');
+const { NotFoundErr } = require('./errors');
 const auth = require('./middlewares/auth');
-const errorHandler = require('./middlewares/errorHandler');
-const { registerValid, loginValid } = require('./middlewares/validationJoi');
-const { requestLogger, errorLoger } = require('./middlewares/logger');
+const { requestLogger, errorLogger } = require('./middlewares/Logger');
 
-// Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
 
 const app = express();
-
-app.use(requestLogger);
 app.use(cors());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(requestLogger);
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -29,22 +24,32 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-app.post('/signup', registerValid, createUser);
-app.post('/signin', loginValid, login);
+app.use(routesUser);
 
-// подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/mestodb', { useNewUrlParser: true });
-
-app.use('/cards', require('./routes/cards'));
+app.use(routerCard);
 
 app.use(auth);
 
-app.use(routerErrorWay);
+app.use((req, res, next) => {
+  next(new NotFoundErr('Не корректный URL'));
+});
 
-app.use(errorLoger);
+mongoose.connect('mongodb://localhost:27017/mestodb', {
+  useNewUrlParser: true,
+});
+
+app.use(errorLogger);
 
 app.use(errors());
+// здесь обрабатываем все ошибки
+app.use((err, req, res, next) => {
+//  console.log(err);
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Ошибка на стороне сервера';
+  res.status(statusCode).send({ message });
+  //  res.status(500).send({ message: 'На сервере произошла ошибка' });
 
-app.use(errorHandler);
+  next();
+});
 
 app.listen(PORT);

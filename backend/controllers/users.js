@@ -1,60 +1,108 @@
-require('dotenv').config();
+const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const Users = require('../models/user');
-const ErrorNotFound = require('../errors/ErrorNotFound');
-const ErrorConflict = require('../errors/ErrorConflict');
-const BadRequestError = require('../errors/BadRequestError');
-const Unauthorized = require('../errors/Unauthorized'); 
+const {
+  NotFoundErr,
+  BadRequestErr,
+  UnAutorizedErr,
+  ConflictErr,
+} = require('../errors');
+const User = require('../models/user');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+const MONGO_DUPLICATE_ERROR_CODE = 11000;
+const SOLT_ROUND = 10;
 
-module.exports.getUser = (req, res, next) => {
-  Users.find({})
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => next(err));
+const getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send({ data: users }))
+    .catch((err) => {
+      next(err);
+    });
 };
 
-module.exports.getUserMe = (req, res, next) => {
-  Users.findById(req.user._id)
+const getUserMe = (req, res, next) => {
+  // const { email } = req.body;
+  User.findById(req.user._id)
     .then((user) => {
-      if (!user._id) {
-        next(new ErrorNotFound('Пользователь не найден'));
+      if (user) {
+        res.send({ data: user });
+      } else {
+        throw new NotFoundErr('Пользователь по переданному id не найден');
       }
-      res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные.'));
+      next(err);
+    });
+};
+
+const sendUser = (req, res, next) => {
+  const { id } = req.params;
+  User.findById(id)
+    .then((user) => {
+      if (user) {
+        res.send({ data: user });
+      } else {
+        throw new NotFoundErr('Пользователь по переданному id не найден');
+      }
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+const updateProfile = (req, res, next) => {
+  const { name, about } = req.body;
+  // обновим имя найденного по _id пользователя
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    {
+      new: true, // обработчик then получит на вход обновлённую запись
+      runValidators: true, // данные будут валидированы перед изменением
+      upsert: false, // если пользователь не найден, он будет создан
+    },
+  )
+    .then((user) => {
+      if (user) {
+        res.send({ data: user });
+      } else {
+        throw new NotFoundErr('Пользователь по переданному id не найден');
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestErr(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
       } else {
         next(err);
       }
     });
 };
 
-module.exports.getUserId = (req, res, next) => {
-  Users.findById(req.params.userId)
-    .orFail(() => {
-      throw new ErrorNotFound('Пользователь не найден');
-    })
+const updateAvatar = (req, res, next) => {
+  // обновим имя найденного по _id пользователя
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(req.user._id, { avatar }, {
+    new: true, // обработчик then получит на вход обновлённую запись
+    runValidators: true, // данные будут валидированы перед изменением
+    upsert: false, // если пользователь не найден, он будет создан
+  })
     .then((user) => {
-      if (!user._id) {
-        next(new ErrorNotFound('Пользователь не найден'));
+      if (user) {
+        res.send({ data: user });
+      } else {
+        throw new NotFoundErr('Пользователь по переданному id не найден');
       }
-      res.status(200).send(user);
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные.'));
+      if (err.name === 'ValidationError') {
+        next(new BadRequestErr(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
       } else {
         next(err);
       }
     });
 };
 
-module.exports.createUser = (req, res, next) => {
+const createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -63,86 +111,56 @@ module.exports.createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  Users.findOne({ email })
-    .then((user) => {
-      if (user) {
-        next(new ErrorConflict(`Пользователь с таким email ${email} уже зарегистрирован`));
-      }
-      return bcrypt.hash(password, 10);
+  bcrypt.hash(password, SOLT_ROUND)
+    .then((hash) => {
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      })
+        .then(() => res.status(200).send({
+          data: {
+            name, about, avatar, email,
+          },
+        }))
+        .catch((err) => {
+          if (err.code === MONGO_DUPLICATE_ERROR_CODE) {
+            next(new ConflictErr('Такой пользователь уже существует'));
+          }
+          if (err.name === 'ValidationError') {
+            next(new BadRequestErr(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+          } else {
+            next(err);
+          }
+        });
     })
-    .then((hash) => Users.create({
-      name,
-      about,
-      avatar,
-      email,
-      password: hash,
-    }))
-    .then((user) => Users.findOne({ _id: user._id })) // прячет пароль
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные.'));
-      } else if (err.code === 11000) {
-        next(new ErrorConflict({ message: err.errorMessage }));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
-module.exports.updateUserInfo = (req, res, next) => {
-  const { name, about } = req.body;
-  Users.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .orFail(() => {
-      throw new BadRequestError('Переданы некорректные данные');
-    })
-    .then((user) => {
-      if (!user) {
-        next(new BadRequestError('Переданы некорректные данные'));
-      }
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные'));
-      }
-      next(err);
-    });
-};
-
-module.exports.updateAvatar = (req, res, next) => {
-  const { avatar } = req.body;
-  Users.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .orFail(() => {
-      throw new BadRequestError('Переданы некорректные данные');
-    })
-    .then((user) => {
-      if (!user) {
-        next(new BadRequestError('Переданы некорректные данные'));
-      }
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные'));
-      }
-      next(err);
-    });
-};
-
-module.exports.login = (req, res, next) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
-  return Users.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'some-secret-key', { expiresIn: '7d' });
-      res.status(201).send({ message: 'Авторизация успешна', token });
+      // аутентификация успешна! пользователь в переменной user
+      // создадим токен
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
+      // не совсем понял как записывать в куки
+      // вернём токен
+      res.send({ token });
     })
-    .catch((err) => {
-      if (err.message === 'IncorrectEmail') {
-        next(new Unauthorized('Не правильный логин или пароль'));
-      }
-      next(err);
+    .catch(() => {
+      next(new UnAutorizedErr('Ошибка авторизации'));
     });
+};
+
+module.exports = {
+  getUsers,
+  sendUser,
+  createUser,
+  updateProfile,
+  updateAvatar,
+  login,
+  getUserMe,
 };

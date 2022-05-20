@@ -1,23 +1,34 @@
 const router = require('express').Router();
-const auth = require('../middlewares/auth');
 const {
-  userAvatarValid,
-  parameterIdValid,
-  userValid,
-} = require('../middlewares/validationJoi');
-
-const {
-  getUser,
-  getUserId,
-  updateUserInfo,
+  getUsers,
+  sendUser,
+  createUser,
+  updateProfile,
   updateAvatar,
+  login,
   getUserMe,
 } = require('../controllers/users');
 
-router.get('/', auth, getUser);
-router.get('/me', auth, getUserMe);
-router.get('/:userId', auth, parameterIdValid('userId'), getUserId);
-router.patch('/me', auth, userValid, updateUserInfo);
-router.patch('/me/avatar', userAvatarValid, updateAvatar);
+const validationPatchProfile = require('../middlewares/validationPatchProfile');
+const validationPatchAvatar = require('../middlewares/validationPatchAvatar');
+const validationRegister = require('../middlewares/validationRegister');
+const validationLogin = require('../middlewares/validationLogin');
+const validationUserId = require('../middlewares/validationUserId');
+
+const auth = require('../middlewares/auth');
+
+router.get('/users', auth, getUsers);
+
+router.patch('/users/me', auth, validationPatchProfile, updateProfile);
+
+router.patch('/users/me/avatar', auth, validationPatchAvatar, updateAvatar);
+
+router.get('/users/me', auth, getUserMe);
+
+router.get('/users/:id', auth, validationUserId, sendUser);
+
+router.post('/signup', validationRegister, createUser);
+
+router.post('/signin', validationLogin, login);
 
 module.exports = router;

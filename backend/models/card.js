@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { isURL } = require('validator');
+const validator = require('validator');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -9,27 +9,30 @@ const cardSchema = new mongoose.Schema({
     maxlength: 30,
   },
   link: {
-    type: String,
+    type: String, // тоже самое что в в схеме user для avatar регулярное выражение
     required: true,
     validate: {
-      validator: (v) => isURL(v, { required_protocol: true }),
-      message: "Поле 'link' не соответствует формату URL",
+      validator: (v) => validator.isURL(v),
     },
+    message: 'Не корректно введен URL!',
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: true,
-    ref: 'user',
   },
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
-    default: [],
-  }],
+  likes: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+      default: [],
+    },
+  ],
   createdAt: {
-    type: Date,
+    type: Date, //  дата создания, тип Date, значение по умолчанию Date.now
     default: Date.now,
   },
 });
 
+// создаём модель и экспортируем её
 module.exports = mongoose.model('card', cardSchema);
