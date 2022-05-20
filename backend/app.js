@@ -7,7 +7,7 @@ const routesUser = require('./routes/users');
 const routerCard = require('./routes/cards');
 const { NotFoundErr } = require('./errors');
 const auth = require('./middlewares/auth');
-const { requestLogger, errorLogger } = require('./middlewares/Logger');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
